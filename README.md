@@ -1,0 +1,2 @@
+# Simple Typo Correction Tool
+
