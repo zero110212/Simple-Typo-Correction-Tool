@@ -1,4 +1,3 @@
-@ -0,0 +1,81 @@
 def remove_reduntdant_char(text):
     """
     Loại bỏ các phụ âm ghép đầu từ trong chuỗi đầu vào.
