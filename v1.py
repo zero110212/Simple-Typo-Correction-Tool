@@ -8,6 +8,7 @@ def xoa_ky_tu_lap(word):
             ket_qua += word[i]
     return ket_qua
 
+
 def remove_reduntdant_char(text):
     phu_am = ['ch', 'nh', 'th', 'kh', 'gi', 'ng', 'ph', 'gh', 'ngh']
     chars = []
@@ -21,6 +22,32 @@ def remove_reduntdant_char(text):
             break
 
     return text, chars, indexof_char
+
+
+NGUYEN_AM = set("aeiouy")
+
+VAN_HOP_LE = {
+    "a","ai","ao","au","ay",
+    "e","eo","em","en","et",
+    "i","ia","iu",
+    "o","oa","oe","oi",
+    "u","ua","ui",
+    "y","ya","ye"
+}
+
+def sua_du_nguyen_am_trong_van(process):
+    # nếu vần đã hợp lệ thì giữ nguyên
+    if process in VAN_HOP_LE:
+        return process
+
+    # thử xóa từng nguyên âm
+    for i in range(len(process)):
+        if process[i] in NGUYEN_AM:
+            new_van = process[:i] + process[i+1:]
+            if new_van in VAN_HOP_LE:
+                return new_van
+
+    return process
 
 
 def change_alias(alias):
@@ -49,6 +76,7 @@ def change_alias(alias):
 
     str_ = alias.lower()
     process, char_deleted, _ = remove_reduntdant_char(str_)
+    process = sua_du_nguyen_am_trong_van(process)
 
     # Ưu tiên chuỗi dài
     for length in range(4, 1, -1):
@@ -63,9 +91,10 @@ def change_alias(alias):
 
     return "".join(char_deleted) + process
 
+
 def xu_ly_tu(word):
     word = xoa_ky_tu_lap(word)   # bước 1: dư chữ
-    word = change_alias(word)   # bước 2: telex
+    word = change_alias(word)   # bước 2: telex + sửa vần
     return word
 
 
@@ -73,6 +102,10 @@ def process_error_text(text):
     words = text.split()
     return " ".join(xu_ly_tu(w) for w in words)
 
+
+# =======================
+# 4. CHẠY INPUT
+# =======================
 if __name__ == "__main__":
     error_text = input("Nhập câu cần xử lý: ")
     print("Kết quả:", process_error_text(error_text))
