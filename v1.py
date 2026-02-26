@@ -91,18 +91,52 @@ def change_alias(alias):
 
     return "".join(char_deleted) + process
 
-
-def xu_ly_tu(word):
-    word = xoa_ky_tu_lap(word)   # bước 1: dư chữ
-    word = change_alias(word)   # bước 2: telex + sửa vần
-    return word
-
-
 def process_error_text(text):
     words = text.split()
     return " ".join(xu_ly_tu(w) for w in words)
 
+def sua_loi_chinh_ta(word):
+    word = word.lower()
 
+    # dùng hàm tách phụ âm đầu của bạn
+    van, chars, _ = remove_reduntdant_char(word)
+    phu_am = "".join(chars)
+
+    # Dictionary phụ âm đầu → vần hợp lệ
+    PHU_AM_VAN = {
+        "ngh": {"e","em","en","eng","ê","êm","ên","êng","i","in","inh"},
+        "gh":  {"e","em","en","eng","ê","êm","ên","êng","i","in","inh"},
+        "q":   {"u","ua","ui","um","un","ung"},
+        "k":   {"e","em","en","eng","ê","êm","ên","êng","i","in","inh"},
+        "c":   {"a","ai","ao","au","am","an","ang","ac","at","o","oi","om","on","ong","u","ung"},
+        "g":   {"a","ai","ao","am","an","ang","o","oi","om","on","ong","u","ung"},
+        "ph":  {"a","ai","ao","am","an","ang","u","ui","um","un","ung","o","on","ong","ơ"},
+        "th":  {"a","ai","ao","am","an","ang","u","ui","ung","o","om","on","ong","i","ia"},
+        "ng":  {"a","ai","am","an","ang","o","oi","om","on","ong","u","ung","i","inh"},
+    }
+
+    # nếu phụ âm không có trong dict thì giữ nguyên
+    if phu_am not in PHU_AM_VAN:
+        return word
+
+    tap_van_hop_le = PHU_AM_VAN[phu_am]
+
+    # nếu vần hợp lệ
+    if van in tap_van_hop_le:
+        return word
+
+    # nếu không hợp lệ → tìm vần gần nhất theo độ dài
+    van_moi = min(
+        tap_van_hop_le,
+        key=lambda v: abs(len(v) - len(van))
+    )
+
+    return phu_am + van_moi
+def xu_ly_tu(word):
+    word = xoa_ky_tu_lap(word)      
+    word = sua_loi_chinh_ta(word)   
+    word = change_alias(word)      
+    return word
 # =======================
 # 4. CHẠY INPUT
 # =======================
