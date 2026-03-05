@@ -1,0 +1,111 @@
+import re
+
+# =========================
+# 1. Chuẩn hóa văn bản
+# =========================
+
+def chuan_hoa(text):
+    # giữ chữ cái tiếng Việt và khoảng trắng
+    text = re.sub(
+        r"[^a-zA-Zàáạảãâầấậẩẫăằắặẳẵ"
+        r"èéẹẻẽêềếệểễ"
+        r"ìíịỉĩ"
+        r"òóọỏõôồốộổỗơờớợởỡ"
+        r"ùúụủũưừứựửữ"
+        r"ỳýỵỷỹđĐ\s]",
+        " ",
+        text
+    )
+
+    # chuẩn hóa khoảng trắng
+    text = re.sub(r"\s+", " ", text).strip()
+
+    # bỏ từ lặp liên tiếp
+    words = text.split()
+    result = []
+    for w in words:
+        if not result or result[-1].lower() != w.lower():
+            result.append(w.lower())
+
+    return result
+
+
+# =========================
+# 2. Phụ âm đầu tiếng Việt
+# =========================
+
+PHU_AM_DAU = [
+    "ngh", "ng", "gh", "ch", "nh", "th", "tr",
+    "ph", "kh", "qu", "gi",
+    "đ", "b", "c", "d", "g", "h",
+    "k", "l", "m", "n", "p",
+    "r", "s", "t", "v", "x"
+]
+
+# ưu tiên cụm dài trước
+PHU_AM_DAU = sorted(PHU_AM_DAU, key=len, reverse=True)
+
+
+# =========================
+# 3. Tách phụ âm đầu
+# =========================
+
+def tach_phu_am(word):
+    for pa in PHU_AM_DAU:
+        if word.startswith(pa):
+            return pa, word[len(pa):]
+    return "", word
+
+
+# =========================
+# 4. Lấy bộ vần hợp lệ
+# =========================
+
+def lay_bo_van_hop_le(text):
+    words = chuan_hoa(text)
+
+    tap_phu_am_xuat_hien = set()
+    tam_tach = []
+
+    # tách trước toàn bộ
+    for w in words:
+        pa, van = tach_phu_am(w)
+        if pa != "" and van != "":
+            tap_phu_am_xuat_hien.add(pa)
+            tam_tach.append((pa, van))
+
+    # xây dict hợp lệ
+    ket_qua = {}
+
+    for pa, van in tam_tach:
+        # chỉ giữ nếu phụ âm đầu tồn tại trong văn bản
+        if pa in tap_phu_am_xuat_hien:
+            if pa not in ket_qua:
+                ket_qua[pa] = set()
+            ket_qua[pa].add(van)
+
+    # đổi set -> list để in đẹp
+    for pa in ket_qua:
+        ket_qua[pa] = sorted(list(ket_qua[pa]))
+
+    return ket_qua
+
+
+# =========================
+# 5. Chạy thử
+# =========================
+
+if __name__ == "__main__":
+    text = """
+    Cũng theo Người phát ngôn, trước tình hình xung đột hiện nay, với sự quan tâm chỉ đạo sát sao của lãnh đạo Đảng, Nhà nước, Bộ Ngoại giao đã hiệp đồng, phối hợp chặt chẽ với các cơ quan liên quan cùng các cơ quan đại diện Việt Nam tại Iran, Israel và các quốc gia lân cận để theo dõi sát diễn biến liên quan và giữ liên lạc thường xuyên với cộng đồng người Việt Nam tại sở tại.
+
+    Đồng thời, Bộ Ngoại giao cũng đã làm việc cụ thể với các cơ quan chức năng sở tại để hỗ trợ công dân Việt Nam, trong đó có những công dân đi du lịch và quá cảnh hay đoàn công tác bị hủy chuyến bay ở khu vực do không phận bị đóng, khuyến cáo công dân bảo đảm an toàn, cung cấp các cái đầu mối liên hệ khẩn cấp và chủ động triển khai công tác bảo hộ công dân, chuẩn bị sẵn sàng phương án sơ tán công dân khi cần thiết.
+
+    Trả lời câu hỏi của phóng viên về phương án bảo hộ các tàu biển Việt Nam và công dân Việt Nam làm việc trên các tàu nước ngoài đi qua khu vực Trung Đông
+    """
+
+    result = lay_bo_van_hop_le(text)
+
+    print("BỘ VẦN HỢP LỆ:")
+    for pa in sorted(result.keys()):
+        print(f"{pa}: {result[pa]}")
